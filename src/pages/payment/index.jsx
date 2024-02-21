@@ -1,3 +1,3 @@
-export default async function Payment() {
-  return <div>PaymentCreation</div>;
+export default function Payment() {
+  return <div>Payment Creation</div>;
 }
