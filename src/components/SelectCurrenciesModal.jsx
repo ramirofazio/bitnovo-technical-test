@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/react";
+
+export const checkValidCurrency = (amount, min_amount, max_amount) => {
+  if (
+    Number(amount) >= Number(min_amount) &&
+    Number(amount) <= Number(max_amount)
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 export default function SelectCurrenciesModal({
   isOpen,
@@ -12,32 +22,34 @@ export default function SelectCurrenciesModal({
 }) {
   const [thisCurrencies, setThisCurrencies] = useState([]);
 
-  const handleClick = (symbol, onClose) => {
-    setPayInfo({ ...payInfo, currency: symbol });
-    toast.success(`${symbol} seleccionado`);
-    onClose();
-  };
-
-  const handleSearch = useDebouncedCallback((event) => {
-    let searchCurrencies = currencies.filter((c) => {
-      if (
-        Number(payInfo.amount) >= Number(c.min_amount) &&
-        Number(payInfo.amount) <= Number(c.max_amount)
-      ) {
-        return c.name.toLowerCase().includes(event.target.value.toLowerCase());
+  const handleSearch = useDebouncedCallback(({ target: { value } }) => {
+    const searchCurrencies = currencies.filter(
+      ({ name, min_amount, max_amount }) => {
+        if (
+          checkValidCurrency(
+            payInfo.expected_output_amount,
+            min_amount,
+            max_amount
+          )
+        ) {
+          return name.toLowerCase().includes(value.toLowerCase());
+        }
       }
-    });
+    );
 
     setThisCurrencies(searchCurrencies);
   }, 200);
 
   useEffect(() => {
-    const validCurrencies = currencies.filter((c) => {
+    const validCurrencies = currencies.filter((coin) => {
       if (
-        Number(payInfo.amount) >= Number(c.min_amount) &&
-        Number(payInfo.amount) <= Number(c.max_amount)
+        checkValidCurrency(
+          payInfo.expected_output_amount,
+          coin.min_amount,
+          coin.max_amount
+        )
       ) {
-        return c;
+        return coin;
       }
     });
 
@@ -78,7 +90,7 @@ export default function SelectCurrenciesModal({
                     <i className="ri-error-warning-line mx-auto text-3xl text-red-500" />
                     <p className="text-sm text-center mx-20">
                       No se ha encontrado ninguna criptomoneda que coincida con
-                      los parámetros de búsqueda.
+                      los parámetros seleccionados.
                     </p>
                   </>
                 )}
@@ -86,7 +98,10 @@ export default function SelectCurrenciesModal({
                   <article
                     key={symbol}
                     className="w-full p-2 rounded-md gap-3 h-18 flex items-center justify-between hover:bg-gray-200 transition hover:cursor-pointer"
-                    onClick={() => handleClick(symbol, onClose)}
+                    onClick={() => {
+                      setPayInfo({ ...payInfo, input_currency: symbol });
+                      onClose();
+                    }}
                   >
                     <div className="flex gap-3">
                       <img src={image} alt={name} className="w-10 h-10" />
@@ -99,7 +114,7 @@ export default function SelectCurrenciesModal({
                     </div>
                     <i
                       className={`ri-${
-                        payInfo.currency === name
+                        payInfo.input_currency === symbol
                           ? "checkbox-circle-fill !text-blue-500"
                           : "arrow-right-s-line"
                       } text-xl text-gray-400 font-thin`}

@@ -1,27 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDisclosure, Button } from "@nextui-org/react";
 import { toast } from "sonner";
-import SelectCurrenciesModal from "./SelectCurrenciesModal";
+import SelectCurrenciesModal, {
+  checkValidCurrency,
+} from "./SelectCurrenciesModal";
 import { CreatePay } from "@/api";
+import { useRouter } from "next/router";
 
 export function CreatePayForm({ currencies }) {
+  const router = useRouter();
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  const [loading, setLoading] = useState(false);
   const [payInfo, setPayInfo] = useState({
-    amount: "",
-    currency: "",
-    concept: "",
+    expected_output_amount: "",
+    input_currency: "",
+    notes: "",
   });
 
-  const handleSelectCurrencies = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onOpen();
+    setLoading(true);
+
+    try {
+      const res = await CreatePay({
+        ...payInfo,
+        expected_output_amount: Number(payInfo.expected_output_amount),
+      });
+
+      if (res.status === 200) {
+        toast.success("Pago creado con exito");
+        router.push(`/payment/${res.data.identifier}`);
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    CreatePay(payInfo);
-  };
+  useEffect(() => {
+    if (payInfo.input_currency) {
+      const { min_amount, max_amount } = currencies.find(
+        ({ symbol }) => symbol === payInfo.input_currency
+      );
+
+      if (
+        !checkValidCurrency(
+          payInfo.expected_output_amount,
+          min_amount,
+          max_amount
+        )
+      ) {
+        setPayInfo({ ...payInfo, input_currency: "" });
+        toast.warning(
+          "El importe excede los limites de la criptomoneda seleccionada"
+        );
+      }
+    }
+  }, [payInfo.expected_output_amount]);
 
   return (
     <>
@@ -39,7 +77,10 @@ export function CreatePayForm({ currencies }) {
             placeholder="Añade importe a pagar"
             type="number"
             onChange={(event) =>
-              setPayInfo({ ...payInfo, amount: event.target.value })
+              setPayInfo({
+                ...payInfo,
+                expected_output_amount: event.target.value,
+              })
             }
           />
         </div>
@@ -55,22 +96,28 @@ export function CreatePayForm({ currencies }) {
           </label>
           <button
             className={`${
-              !payInfo.amount && "pointer-events-none"
+              !payInfo.expected_output_amount && "pointer-events-none"
             } border-2 border-gray-200 flex items-center justify-between group`}
-            onClick={handleSelectCurrencies}
-            disabled={!payInfo.amount}
+            onClick={(event) => {
+              event.preventDefault();
+              onOpen();
+            }}
+            disabled={!payInfo.expected_output_amount}
           >
             <div className="flex items-center gap-2">
               <img
                 src={
-                  currencies.find((c) => c.name === payInfo.currency)?.image ||
-                  "https://payments.pre-bnvo.com/media/crytocurrencies/CurrencyBTC_Size36_px_StrokeON.png"
+                  currencies.find(
+                    (coin) => coin.symbol === payInfo.input_currency
+                  )?.image
                 }
                 alt="first-currency-image"
-                className="w-6 group-hover:opacity-50 transition"
+                className={`w-6 group-hover:opacity-50 transition ${
+                  payInfo.input_currency ? "flex" : "hidden"
+                }`}
               />
-              <p className="text-black text-xs  group-hover:opacity-50 transition">
-                {payInfo.currency || "Bitcoin BTC"}
+              <p className="text-gray-400 text-xs  group-hover:opacity-50 transition">
+                {payInfo.input_currency || "Añade Moneda para el pago"}
               </p>
             </div>
             <i className="ri-arrow-down-s-line text-lg text-gray-400  group-hover:opacity-50 transition" />
@@ -81,16 +128,22 @@ export function CreatePayForm({ currencies }) {
           <input
             placeholder="Añade descripción del pago"
             onChange={(event) =>
-              setPayInfo({ ...payInfo, concept: event.target.value })
+              setPayInfo({ ...payInfo, notes: event.target.value })
             }
           />
         </div>
-        <input
+        <Button
           type="submit"
+          isLoading={loading}
           className="bg-blue-600 mt-2 py-3 rounded-md text-white"
-          disabled={!payInfo.amount || !payInfo.concept} //todo Poner validacion de ZOD libreria
-          value="Continuar"
-        />
+          isDisabled={
+            !payInfo.expected_output_amount ||
+            !payInfo.notes ||
+            !payInfo.input_currency
+          }
+        >
+          Continuar
+        </Button>
       </form>
     </>
   );

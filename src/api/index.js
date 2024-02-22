@@ -6,18 +6,15 @@ const API = axios.create({
 });
 
 export async function getCurrencies() {
-  const res = (await API.get("/currencies")).data;
-  return res;
+  const res = await API.get("/currencies");
+  return res.data;
 }
 
-export async function CreatePay({ currency, concept, amount }) {
-  const cleanData = {
-    input_currency: currency,
-    notes: concept,
-    expected_output_amount: Number(amount),
-  };
+export async function CreatePay(formData) {
+  return await API.post("/orders/", formData);
+}
 
-  await API.post("/orders/", cleanData).data;
-
-  //! ESTO ANDA
+export async function getOrderInfo(id) {
+  const res = await API.get(`/orders/info/${id}`);
+  return res.data[0];
 }
