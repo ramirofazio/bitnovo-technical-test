@@ -10,33 +10,38 @@ export default function SelectCurrenciesModal({
   payInfo,
   setPayInfo,
 }) {
-  const [thisCurrencies, setThisCurrencies] = useState(currencies);
+  const [thisCurrencies, setThisCurrencies] = useState([]);
 
-  const handleClick = (currencyName, onClose) => {
-    setPayInfo({ ...payInfo, currency: currencyName });
-    toast.success(`${currencyName} seleccionado`);
+  const handleClick = (symbol, onClose) => {
+    setPayInfo({ ...payInfo, currency: symbol });
+    toast.success(`${symbol} seleccionado`);
     onClose();
   };
 
   const handleSearch = useDebouncedCallback((event) => {
-    let searchCurrencies = currencies.filter((c) =>
-      c.name.toLowerCase().includes(event.target.value.toLowerCase())
-    );
-
-    if (!searchCurrencies.length) {
-      searchCurrencies = currencies;
-      toast.error(
-        "No se ha encontrado ninguna criptomoneda que coincida con los parámetros de búsqueda"
-      );
-    }
+    let searchCurrencies = currencies.filter((c) => {
+      if (
+        Number(payInfo.amount) >= Number(c.min_amount) &&
+        Number(payInfo.amount) <= Number(c.max_amount)
+      ) {
+        return c.name.toLowerCase().includes(event.target.value.toLowerCase());
+      }
+    });
 
     setThisCurrencies(searchCurrencies);
   }, 200);
 
   useEffect(() => {
-    if (!isOpen) {
-      setThisCurrencies(currencies);
-    }
+    const validCurrencies = currencies.filter((c) => {
+      if (
+        Number(payInfo.amount) >= Number(c.min_amount) &&
+        Number(payInfo.amount) <= Number(c.max_amount)
+      ) {
+        return c;
+      }
+    });
+
+    setThisCurrencies(validCurrencies);
   }, [isOpen, currencies]);
 
   return (
@@ -68,11 +73,20 @@ export default function SelectCurrenciesModal({
                 />
               </section>
               <section className="py-4 gap-2 grid place-items-start">
+                {!thisCurrencies.length && (
+                  <>
+                    <i className="ri-error-warning-line mx-auto text-3xl text-red-500" />
+                    <p className="text-sm text-center mx-20">
+                      No se ha encontrado ninguna criptomoneda que coincida con
+                      los parámetros de búsqueda.
+                    </p>
+                  </>
+                )}
                 {thisCurrencies.map(({ name, symbol, image }) => (
                   <article
                     key={symbol}
                     className="w-full p-2 rounded-md gap-3 h-18 flex items-center justify-between hover:bg-gray-200 transition hover:cursor-pointer"
-                    onClick={() => handleClick(name, onClose)}
+                    onClick={() => handleClick(symbol, onClose)}
                   >
                     <div className="flex gap-3">
                       <img src={image} alt={name} className="w-10 h-10" />
