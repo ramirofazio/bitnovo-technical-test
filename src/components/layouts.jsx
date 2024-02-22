@@ -8,7 +8,7 @@ export default function Layout({ children }) {
   return (
     <main className={mullish.className}>
       {children}
-      <section className="absolute bottom-5 flex justify-center inset-x-0">
+      <section className="absolute bottom-5 hidden xl:flex justify-center inset-x-0 ">
         <Image
           src="/footer-frame.png"
           alt="footer-frame"
