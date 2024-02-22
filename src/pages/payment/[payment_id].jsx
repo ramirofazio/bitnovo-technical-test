@@ -2,19 +2,27 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getCurrencies, getOrderInfo } from "@/api";
 import { AnimatePresence, motion } from "framer-motion";
-import { sectionVariants } from "@/styles/framerConstants";
 import { toast } from "sonner";
-import { Button, ButtonGroup, Divider } from "@nextui-org/react";
-import { getExpirationTime, getTimeFromISO } from "@/utils";
+import { Button, Divider } from "@nextui-org/react";
+import { getTimeFromISO } from "@/utils";
 import Image from "next/image";
 import { CopyIcon } from "@/components";
+import QRCode from "react-qr-code";
 
-export default function PaymentGateway({ orderInfo, currencies }) {
+export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
   const router = useRouter();
 
+  const [thisOrderInfo, setThisOrderInfo] = useState(orderInfo);
   const [selectedBtn, setSelectedBtn] = useState("qr");
   const [currencyImage, setCurrencyImage] = useState("");
   const [socket, setSocket] = useState(null);
+  const [expirationTime, setExpirationTime] = useState(null);
+
+  useEffect(() => {
+    if (orderInfo.status === "EX" || orderInfo.status === "OC") {
+      router.replace("/timeout");
+    }
+  }, [orderInfo]);
 
   useEffect(() => {
     const { image } = currencies.find((c) => {
@@ -32,26 +40,54 @@ export default function PaymentGateway({ orderInfo, currencies }) {
 
       socket.onopen = () => {
         setSocket(socket);
-        toast.info("WebSocket connected");
+        console.log("WebSocket connected");
       };
 
       socket.onmessage = (event) => {
-        //! Ver como handlear el evento del socket
         const data = JSON.parse(event.data);
-        toast.info("WebSocket message received:", JSON.stringify(data));
+        console.log("WebSocket message received:", data);
+        if (data.status === "CO" || data.status === "AC") {
+          router.replace("/success");
+        }
+        if (data.status === "IA") {
+          setThisOrderInfo(data);
+          toast.info(
+            `Monto insuficiente, por favor completa el pago. Montos recibidos: ${
+              data.confirmed_amount
+            } ${data.currency_id.split("_")[0]} `
+          );
+        }
       };
 
       socket.onclose = () => {
-        toast.info("WebSocket disconnected");
+        console.log("WebSocket disconnected");
       };
     }
 
+    const calculateExpiration = () => {
+      const currentTime = new Date().getTime();
+      const expiration = new Date(orderInfo.expired_time).getTime();
+      const remainingTime = expiration - currentTime;
+      setExpirationTime(Math.max(remainingTime, 0));
+    };
+
+    calculateExpiration();
+
+    setInterval(calculateExpiration, 1000);
+
     return () => {
+      clearInterval();
       if (socket) {
         socket.close();
       }
     };
   }, [router.query.payment_id]);
+
+  useEffect(() => {
+    if (expirationTime === 0) {
+      router.replace("/timeout");
+    }
+  }, [expirationTime]);
 
   return (
     <motion.main
@@ -68,7 +104,7 @@ export default function PaymentGateway({ orderInfo, currencies }) {
           <div className="flex justify-between">
             <h2>Importe</h2>
             <h2>
-              {orderInfo.fiat_amount} {orderInfo.fiat}
+              {thisOrderInfo.fiat_amount} {thisOrderInfo.fiat}
             </h2>
           </div>
           <Divider />
@@ -76,7 +112,7 @@ export default function PaymentGateway({ orderInfo, currencies }) {
             <h2>Moneda seleccionada:</h2>
             <h2 className="flex items-center text-sm gap-2">
               <img loading="lazy" src={currencyImage} className="w-5 h-5" />
-              {orderInfo.currency_id.split("_")[0]}
+              {thisOrderInfo.currency_id.split("_")[0]}
             </h2>
           </div>
           <Divider />
@@ -84,17 +120,17 @@ export default function PaymentGateway({ orderInfo, currencies }) {
             <h2>Comercio:</h2>
             <h2>
               <i className="ri-verified-badge-fill text-lg text-cyan-400" />{" "}
-              {orderInfo.merchant_device}
+              {thisOrderInfo.merchant_device}
             </h2>
           </div>
           <div className="flex justify-between">
             <h2>Fecha:</h2>
-            <h2>{getTimeFromISO(orderInfo.created_at)}</h2>
+            <h2>{getTimeFromISO(thisOrderInfo.created_at)}</h2>
           </div>
           <Divider />
           <div className="flex justify-between">
             <h2>Concepto</h2>
-            <h2>{orderInfo.notes}</h2>
+            <h2>{thisOrderInfo.notes}</h2>
           </div>
         </section>
       </article>
@@ -103,10 +139,17 @@ export default function PaymentGateway({ orderInfo, currencies }) {
         <h1 className="font-bold">Realizar el pago</h1>
         <section className="rounded-md  grid gap-6 p-4 min-w-[30vw] shadow-center place-items-center">
           <div className="mx-auto gap-1 flex items-center">
-            <i className="ri-timer-line text-xl" />
-            <p className="text-xs font-bold">
-              {/* //! HACER LOGICA PARA QUE VAYA CONTANDO */}
-              {"05:08" || getExpirationTime(orderInfo.expired_time)}
+            <i
+              className={`ri-timer-line text-xl ${
+                expirationTime < 180000 && "text-red-500 animate-bounce"
+              }`}
+            />
+            <p
+              className={`text-xs font-bold ${
+                expirationTime < 180000 && "text-red-500"
+              }`}
+            >
+              {formatTime(expirationTime)}
             </p>
           </div>
 
@@ -142,12 +185,7 @@ export default function PaymentGateway({ orderInfo, currencies }) {
                   transition={{ duration: 0.3 }}
                   className="absolute flex items-center justify-center inset-0"
                 >
-                  <Image
-                    src="/mock-qr.png"
-                    alt="mock-qr"
-                    width={120}
-                    height={120}
-                  />
+                  <QRCode size={120} value={payment_uri} />
                 </motion.div>
               )}
               {selectedBtn === "web3" && (
@@ -176,24 +214,24 @@ export default function PaymentGateway({ orderInfo, currencies }) {
             <p className="gap-2 flex items-center">
               Enviar
               <strong>
-                {parseFloat(orderInfo.crypto_amount).toFixed(2)}{" "}
-                {orderInfo.currency_id.split("_")[0]}
+                {parseFloat(
+                  thisOrderInfo.crypto_amount - thisOrderInfo.confirmed_amount
+                ).toFixed(4)}{" "}
+                {thisOrderInfo.currency_id.split("_")[0]}
               </strong>
-              <CopyIcon
-                copyValue={`${parseFloat(orderInfo.crypto_amount).toFixed(2)} ${
-                  orderInfo.currency_id.split("_")[0]
-                }`}
-              />
+              <CopyIcon copyValue={thisOrderInfo.crypto_amount} />
             </p>
             <p className="gap-2 flex items-center">
-              {orderInfo.address}
-              <CopyIcon copyValue={orderInfo.address} />
+              {thisOrderInfo.address}
+              <CopyIcon copyValue={thisOrderInfo.address} />
             </p>
-            <p className="gap-2 flex items-center">
-              <i className="ri-information-fill  text-yellow-400 text-lg " />
-              Etiqueta de destino: {orderInfo.tag_memo || 2557164061}
-              <CopyIcon copyValue={orderInfo.tag_memo} />
-            </p>
+            {thisOrderInfo.tag_memo && (
+              <p className="gap-2 flex items-center">
+                <i className="ri-information-fill  text-yellow-400 text-lg " />
+                Etiqueta de destino: {thisOrderInfo.tag_memo}
+                <CopyIcon copyValue={thisOrderInfo.tag_memo} />
+              </p>
+            )}
           </div>
         </section>
       </article>
@@ -202,9 +240,17 @@ export default function PaymentGateway({ orderInfo, currencies }) {
 }
 
 export async function getServerSideProps(context) {
-  const { payment_id } = context.query;
+  const { payment_id, payment_uri } = context.query;
   const orderInfo = await getOrderInfo(payment_id);
   const currencies = await getCurrencies();
 
-  return { props: { orderInfo, currencies } };
+  return { props: { orderInfo, currencies, payment_uri } };
 }
+
+const formatTime = (milliseconds) => {
+  const minutes = Math.floor(milliseconds / 60000);
+  const seconds = Math.floor((milliseconds % 60000) / 1000);
+  return `${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
+};

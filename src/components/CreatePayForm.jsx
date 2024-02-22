@@ -31,7 +31,9 @@ export function CreatePayForm({ currencies }) {
 
       if (res.status === 200) {
         toast.success("Pago creado con exito");
-        router.push(`/payment/${res.data.identifier}`);
+        router.push(
+          `/payment/${res.data.identifier}?payment_uri=${res.data.payment_uri}`
+        );
       }
     } catch (e) {
       console.log(e);
@@ -70,7 +72,10 @@ export function CreatePayForm({ currencies }) {
         payInfo={payInfo}
         setPayInfo={setPayInfo}
       />
-      <form className="flex flex-col w-[30vw] gap-4" onSubmit={handleSubmit}>
+      <form
+        className="flex flex-col min-w-[30vw] gap-4"
+        onSubmit={handleSubmit}
+      >
         <div className="flex flex-col gap-2">
           <label>Importe a pagar</label>
           <input
