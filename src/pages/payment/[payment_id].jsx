@@ -55,9 +55,11 @@ export default function PaymentGateway({ orderInfo, currencies }) {
 
   return (
     <motion.main
-      variants={sectionVariants}
-      initial="hidden"
-      animate="visible"
+      key="payment-section"
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0 }}
+      transition={{ duration: 0.4 }}
       className="grid xl:grid-cols-2 xl:grid-rows-3 gap-10 p-4 place-items-start"
     >
       <article className="row-span-3 w-full gap-4 grid">
