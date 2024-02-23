@@ -5,9 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button, Divider } from "@nextui-org/react";
 import { getTimeFromISO } from "@/utils";
-import Image from "next/image";
 import { CopyIcon } from "@/components";
 import QRCode from "react-qr-code";
+import { WalletConnectBtn } from "@/components/WalletConnectBtn";
 
 export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
 
     if (router.query.payment_id) {
       const socket = new WebSocket(
-        `wss://payments.pre-bnvo.com/ws/${router.query.payment_id}`
+        `${process.env.NEXT_PUBLIC_SOCKET_URL}/${router.query.payment_id}`
       );
 
       socket.onopen = () => {
@@ -197,13 +197,9 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
                   transition={{ duration: 0.3 }}
                   className="absolute flex items-center justify-center inset-0"
                 >
-                  <Image
-                    src="/metamask.png"
-                    alt="metamask"
-                    width={120}
-                    height={120}
-                    className="drop-shadow-2xl icons"
-                    onClick={() => toast.info("Abrir metamask ...")}
+                  <WalletConnectBtn
+                    address={orderInfo.address}
+                    amount={orderInfo.crypto_amount}
                   />
                 </motion.div>
               )}
@@ -219,7 +215,11 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
                 ).toFixed(4)}{" "}
                 {thisOrderInfo.currency_id.split("_")[0]}
               </strong>
-              <CopyIcon copyValue={thisOrderInfo.crypto_amount} />
+              <CopyIcon
+                copyValue={
+                  thisOrderInfo.crypto_amount - thisOrderInfo.confirmed_amount
+                }
+              />
             </p>
             <p className="gap-2 flex items-center">
               {thisOrderInfo.address}
