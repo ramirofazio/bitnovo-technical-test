@@ -47,4 +47,8 @@
   .icons {
     @apply hover:opacity-50 transition hover:cursor-pointer;
   }
+
+  .custom-btn {
+    @apply bg-blue-600 text-white text-sm rounded-md;
+  }
 }

@@ -5,11 +5,10 @@ export function CopyIcon({ copyValue }) {
     navigator.clipboard
       .writeText(copyValue)
       .then(() => {
-        toast.success("Copiado al portapapeles");
+        toast.success("Copiado al portapapeles.");
       })
       .catch((e) => {
         console.log(e);
-        toast.error("Error al copiar al portapapeles");
       });
   };
 

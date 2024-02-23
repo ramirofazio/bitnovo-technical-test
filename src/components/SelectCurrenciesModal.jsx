@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/react";
-
-export const checkValidCurrency = (amount, min_amount, max_amount) => {
-  if (
-    Number(amount) >= Number(min_amount) &&
-    Number(amount) <= Number(max_amount)
-  ) {
-    return true;
-  } else {
-    return false;
-  }
-};
+import { checkValidCurrency } from "@/utils";
 
 export default function SelectCurrenciesModal({
   isOpen,
@@ -23,6 +13,7 @@ export default function SelectCurrenciesModal({
   const [thisCurrencies, setThisCurrencies] = useState([]);
 
   const handleSearch = useDebouncedCallback(({ target: { value } }) => {
+    //? filtro las criptomonedas en tiempo real y chequeo que sean validas dependiendo el monto
     const searchCurrencies = currencies.filter(
       ({ name, min_amount, max_amount }) => {
         if (
@@ -60,10 +51,9 @@ export default function SelectCurrenciesModal({
     <Modal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      size="xl"
       backdrop="transparent"
+      size="xl"
       hideCloseButton
-      className="min-h-[70vh]"
     >
       <ModalContent>
         {(onClose) => (
@@ -80,8 +70,9 @@ export default function SelectCurrenciesModal({
                 <i className="ri-search-line text-xl text-gray-400 absolute left-4" />
                 <input
                   placeholder="Buscar"
+                  maxLength={10}
                   className="w-full pl-10"
-                  onChange={(event) => handleSearch(event)}
+                  onChange={handleSearch}
                 />
               </section>
               <section className="py-4 gap-2 grid place-items-start">
