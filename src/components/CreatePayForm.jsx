@@ -30,15 +30,13 @@ export function CreatePayForm({ currencies }) {
       });
 
       if (res.status === 200) {
-        toast.success("Pago creado con exito");
         router.push(
           `/payment/${res.data.identifier}?payment_uri=${res.data.payment_uri}`
         );
+        toast.success("Pago creado con exito");
       }
     } catch (e) {
       console.log(e);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -62,6 +60,12 @@ export function CreatePayForm({ currencies }) {
       }
     }
   }, [payInfo.expected_output_amount]);
+
+  useEffect(() => {
+    return () => {
+      setLoading(false);
+    };
+  }, []);
 
   return (
     <>
