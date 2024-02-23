@@ -3,11 +3,11 @@ import { useRouter } from "next/router";
 import { getCurrencies, getOrderInfo } from "@/api";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
-import { Button, Divider } from "@nextui-org/react";
+import { Button, Divider, Tooltip } from "@nextui-org/react";
 import { getTimeFromISO } from "@/utils";
 import { CopyIcon } from "@/components";
 import QRCode from "react-qr-code";
-import { WalletConnectBtn } from "@/components/WalletConnectBtn";
+import { Web3WalletButton } from "@/components/Web3WalletButton";
 
 export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
   const [currencyImage, setCurrencyImage] = useState("");
   const [socket, setSocket] = useState(null);
   const [expirationTime, setExpirationTime] = useState(null);
+  const [web3PaymentInProcess, setWeb3PaymentInProcess] = useState(false);
 
   useEffect(() => {
     if (orderInfo.status === "EX" || orderInfo.status === "OC") {
@@ -158,20 +159,39 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
               className={`rounded-full h-8 ${
                 selectedBtn === "qr" ? "bg-blue-600 text-white" : "bg-slate-100"
               }`}
+              isDisabled={web3PaymentInProcess}
               onClick={() => setSelectedBtn("qr")}
             >
               Smart QR
             </Button>
-            <Button
-              className={`rounded-full h-8 ${
-                selectedBtn === "web3"
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-100"
-              }`}
-              onClick={() => setSelectedBtn("web3")}
+            <Tooltip
+              content="Web3 solo para pagos con red Goerli."
+              offset={7}
+              placement="right"
+              hidden={
+                orderInfo.currency_id === "ETH_TEST3" ||
+                orderInfo.currency_id === "USDC_TEST3"
+                  ? true
+                  : false
+              }
             >
-              Web 3
-            </Button>
+              <Button
+                className={`rounded-full h-8 ${
+                  selectedBtn === "web3"
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-100"
+                }`}
+                isDisabled={web3PaymentInProcess}
+                onClick={() =>
+                  orderInfo.currency_id === "ETH_TEST3" ||
+                  orderInfo.currency_id === "USDC_TEST3"
+                    ? setSelectedBtn("web3")
+                    : null
+                }
+              >
+                Web 3
+              </Button>
+            </Tooltip>
           </div>
 
           <div className="shadow-center relative overflow-hidden p-4 rounded-xl h-40 w-40 grid place-content-center">
@@ -197,9 +217,10 @@ export default function PaymentGateway({ orderInfo, currencies, payment_uri }) {
                   transition={{ duration: 0.3 }}
                   className="absolute flex items-center justify-center inset-0"
                 >
-                  <WalletConnectBtn
+                  <Web3WalletButton
                     address={orderInfo.address}
                     amount={orderInfo.crypto_amount}
+                    setWeb3PaymentInProcess={setWeb3PaymentInProcess}
                   />
                 </motion.div>
               )}

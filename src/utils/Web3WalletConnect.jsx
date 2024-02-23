@@ -1,8 +1,8 @@
-import "@rainbow-me/rainbowkit/styles.css";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { goerli } from "wagmi/chains";
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import "@rainbow-me/rainbowkit/styles.css";
 
 export default function Web3WalletConnect({ children }) {
   const queryClient = new QueryClient();
@@ -10,7 +10,7 @@ export default function Web3WalletConnect({ children }) {
   const config = getDefaultConfig({
     appName: "bitnovo-technical-interview",
     projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID,
-    chains: [goerli /* //?Agregar las demas testnest */],
+    chains: [goerli],
     ssr: true,
   });
 

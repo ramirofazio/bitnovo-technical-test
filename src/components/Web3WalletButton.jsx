@@ -1,14 +1,28 @@
 import { Button, Image } from "@nextui-org/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEffect } from "react";
 import { parseEther } from "viem";
-import { useSendTransaction } from "wagmi";
+import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 
-export const WalletConnectBtn = ({ address, amount }) => {
-  const { data: hash, sendTransaction } = useSendTransaction();
+export const Web3WalletButton = ({
+  address,
+  amount,
+  setWeb3PaymentInProcess,
+}) => {
+  const { data: hash, isPending, sendTransaction } = useSendTransaction();
+
+  const { isLoading: isConfirming } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const handlePayOrder = () => {
     sendTransaction({ to: address, value: parseEther(String(amount)) });
   };
+
+  useEffect(() => {
+    setWeb3PaymentInProcess(isConfirming || isPending);
+    console.log(hash);
+  }, [isConfirming || isPending]);
 
   return (
     <ConnectButton.Custom>
@@ -17,8 +31,23 @@ export const WalletConnectBtn = ({ address, amount }) => {
         const connected = ready && account && chain;
 
         return (
-          <div className={`${!connected && "icons"}`}>
+          <section className={`${!connected && "icons"}`}>
             {(() => {
+              if (isPending || isConfirming) {
+                return (
+                  <div className="grid place-items-center p-3 text-center gap-4">
+                    <p className="font-bold">El pago se esta procesando...</p>
+                    <Image
+                      src="/metamask.png"
+                      alt="metamask"
+                      width={60}
+                      height={60}
+                      className="animate-spinner-ease-spin"
+                    />
+                  </div>
+                );
+              }
+
               if (!connected) {
                 return (
                   <Image
@@ -33,8 +62,7 @@ export const WalletConnectBtn = ({ address, amount }) => {
               }
 
               return (
-                <section className="grid place-items-center gap-3">
-                  {hash}
+                <div className="grid place-items-center gap-3">
                   <p className="font-bold">
                     ~{Number(account.balanceFormatted).toFixed(4)}{" "}
                     {account.balanceSymbol}
@@ -55,10 +83,10 @@ export const WalletConnectBtn = ({ address, amount }) => {
                       <i className="ri-send-plane-2-line text-lg" />
                     </Button>
                   </div>
-                </section>
+                </div>
               );
             })()}
-          </div>
+          </section>
         );
       }}
     </ConnectButton.Custom>
