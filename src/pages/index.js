@@ -4,7 +4,7 @@ import AnimatedContainer from "@/components/layouts/AnimatedContainer";
 
 export default function Page({ currencies }) {
   return (
-    <AnimatedContainer className="shadow-center rounded-md flex flex-col items-center justify-start p-8 gap-4 w-fit">
+    <AnimatedContainer className="shadow-center rounded-xl flex flex-col items-center justify-start p-8 gap-4 w-fit">
       <h1 className="font-bold text-2xl">Crear pago</h1>
       <CreatePayForm currencies={currencies} />
     </AnimatedContainer>

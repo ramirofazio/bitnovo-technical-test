@@ -18,7 +18,7 @@ export default function OrderResume({ thisOrderInfo, currencies }) {
   return (
     <article className="row-span-3 w-full gap-4 grid">
       <h1 className="font-bold">Resumen del pedido</h1>
-      <section className="rounded-md bg-slate-100 grid shadow-sm gap-4 p-6 min-w-[30vw] text-sm font-semibold">
+      <section className="rounded-xl bg-[#F9FAFC] grid shadow-sm gap-4 p-6 min-w-[30vw] text-sm font-semibold">
         <div className="flex justify-between">
           <h2>Importe</h2>
           <h2>

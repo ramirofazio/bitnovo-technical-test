@@ -5,10 +5,13 @@ import { CopyIcon } from "@/components";
 import QRCode from "react-qr-code";
 import { Web3WalletButton } from "@/components/Web3WalletButton";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 
 export default function Payment({ payment_uri, thisOrderInfo }) {
+  const router = useRouter();
+
   const [selectedBtn, setSelectedBtn] = useState("qr");
-  const [web3PaymentInProcess, setWeb3PaymentInProcess] = useState(false);
+  const [web3PaymentInProcess, setWeb3PaymentInProcess] = useState(null);
   const [expirationTime, setExpirationTime] = useState(null);
 
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function Payment({ payment_uri, thisOrderInfo }) {
   return (
     <article className="row-span-3 w-full gap-4 grid">
       <h1 className="font-bold">Realizar el pago</h1>
-      <section className="rounded-md  grid gap-6 p-4 min-w-[30vw] shadow-center place-items-center">
+      <section className="rounded-xl  grid gap-6 p-4 min-w-[30vw] shadow-center place-items-center">
         <div className="mx-auto gap-1 flex items-center">
           <i
             className={`ri-timer-line text-xl ${
@@ -93,7 +96,7 @@ export default function Payment({ payment_uri, thisOrderInfo }) {
           </Tooltip>
         </div>
 
-        <div className="shadow-center relative overflow-hidden p-4 rounded-xl h-40 w-40 grid place-content-center">
+        <div className="shadow-xl relative overflow-hidden p-4 rounded-xl h-40 w-40 grid place-content-center">
           <AnimatePresence>
             {selectedBtn === "qr" && (
               <motion.div
@@ -118,8 +121,11 @@ export default function Payment({ payment_uri, thisOrderInfo }) {
               >
                 <Web3WalletButton
                   address={thisOrderInfo.address}
-                  amount={thisOrderInfo.crypto_amount}
+                  amount={
+                    thisOrderInfo.crypto_amount - thisOrderInfo.confirmed_amount
+                  }
                   setWeb3PaymentInProcess={setWeb3PaymentInProcess}
+                  web3PaymentInProcess={web3PaymentInProcess}
                 />
               </motion.div>
             )}
@@ -130,9 +136,7 @@ export default function Payment({ payment_uri, thisOrderInfo }) {
           <p className="gap-2 flex items-center">
             Enviar
             <strong>
-              {parseFloat(
-                thisOrderInfo.crypto_amount - thisOrderInfo.confirmed_amount
-              ).toFixed(4)}{" "}
+              {thisOrderInfo.crypto_amount - thisOrderInfo.confirmed_amount}{" "}
               {thisOrderInfo.currency_id.split("_")[0]}
             </strong>
             <CopyIcon

@@ -2,27 +2,24 @@ import { Button, Image } from "@nextui-org/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect } from "react";
 import { parseEther } from "viem";
-import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
+import { useSendTransaction } from "wagmi";
 
 export const Web3WalletButton = ({
   address,
   amount,
   setWeb3PaymentInProcess,
+  web3PaymentInProcess,
 }) => {
-  const { data: hash, isPending, sendTransaction } = useSendTransaction();
-
-  const { isLoading: isConfirming } = useWaitForTransactionReceipt({
-    hash,
-  });
+  const { isError, sendTransaction } = useSendTransaction();
 
   const handlePayOrder = () => {
+    setWeb3PaymentInProcess(true);
     sendTransaction({ to: address, value: parseEther(String(amount)) });
   };
 
   useEffect(() => {
-    setWeb3PaymentInProcess(isConfirming || isPending);
-    console.log(hash);
-  }, [isConfirming || isPending]);
+    setWeb3PaymentInProcess(false);
+  }, [isError]);
 
   return (
     <ConnectButton.Custom>
@@ -33,7 +30,7 @@ export const Web3WalletButton = ({
         return (
           <section className={`${!connected && "icons"}`}>
             {(() => {
-              if (isPending || isConfirming) {
+              if (web3PaymentInProcess) {
                 return (
                   <div className="grid place-items-center p-3 text-center gap-4">
                     <p className="font-bold">El pago se esta procesando...</p>

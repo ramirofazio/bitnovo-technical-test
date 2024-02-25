@@ -20,8 +20,6 @@ export default function Page({ orderInfo, currencies, payment_uri }) {
     }
   }, [thisOrderInfo]);
 
-  console.log(thisOrderInfo);
-
   useEffect(() => {
     if (router.query.payment_id) {
       const socket = new WebSocket(
@@ -30,12 +28,11 @@ export default function Page({ orderInfo, currencies, payment_uri }) {
 
       socket.onopen = () => {
         setSocket(socket);
-        console.log("WebSocket connected");
+        console.log("socket connected");
       };
 
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        console.log("WebSocket message received:", data);
         if (data.status === "CO" || data.status === "AC") {
           router.replace("/success");
         }
@@ -50,7 +47,7 @@ export default function Page({ orderInfo, currencies, payment_uri }) {
       };
 
       socket.onclose = () => {
-        console.log("WebSocket disconnected");
+        console.log("socket disconnected");
       };
     }
 

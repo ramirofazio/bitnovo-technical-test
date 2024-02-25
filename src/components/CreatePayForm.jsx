@@ -5,7 +5,7 @@ import SelectCurrenciesModal, {
   checkValidCurrency,
 } from "./SelectCurrenciesModal";
 import SelectCurrenciesButton from "./SelectCurrencyButton";
-import { useDisclosure, Button } from "@nextui-org/react";
+import { useDisclosure, Button, Tooltip } from "@nextui-org/react";
 import { toast } from "sonner";
 
 export function CreatePayForm({ currencies }) {
@@ -105,12 +105,13 @@ export function CreatePayForm({ currencies }) {
         <div className="flex flex-col gap-2">
           <label>
             Seleccione moneda{" "}
-            <i
-              className="ri-error-warning-line text-gray-400 icons"
-              onClick={() =>
-                toast.info("Primero seleccione un importe a pagar.")
-              }
-            />
+            <Tooltip
+              content="Seleccione la criptomoneda con la cual vas a hacer el pago."
+              offset={7}
+              placement="right"
+            >
+              <i className="ri-error-warning-line text-gray-400 icons" />
+            </Tooltip>
           </label>
           <SelectCurrenciesButton
             payInfo={payInfo}
