@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/react";
 import { checkValidCurrency } from "@/utils";
+import Image from "next/image";
 
 export default function SelectCurrenciesModal({
   isOpen,
@@ -95,7 +96,13 @@ export default function SelectCurrenciesModal({
                     }}
                   >
                     <div className="flex gap-3">
-                      <img src={image} alt={name} className="w-10 h-10" />
+                      <Image
+                        loader={() => image}
+                        src={image}
+                        alt={name}
+                        width={40}
+                        height={40}
+                      />
                       <div className="flex flex-col">
                         <strong className="text-sm tracking-wide font-semibold">
                           {name}

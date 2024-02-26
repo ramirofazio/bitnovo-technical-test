@@ -1,5 +1,6 @@
 import { getTimeFromISO } from "@/utils";
 import { Divider } from "@nextui-org/react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function OrderResume({ thisOrderInfo, currencies }) {
@@ -29,7 +30,12 @@ export default function OrderResume({ thisOrderInfo, currencies }) {
         <div className="flex justify-between">
           <h2>Moneda seleccionada:</h2>
           <h2 className="flex items-center text-sm gap-2">
-            <img loading="lazy" src={currencyImage} className="w-5 h-5" />
+            <Image
+              src={currencyImage}
+              alt="currency-image"
+              width={20}
+              height={20}
+            />
             {thisOrderInfo.currency_id.split("_")[0]}
           </h2>
         </div>

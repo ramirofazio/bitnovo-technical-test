@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function SelectCurrenciesButton({
   onOpen,
   currencies,
@@ -15,13 +17,15 @@ export default function SelectCurrenciesButton({
       disabled={!payInfo.expected_output_amount}
     >
       <div className="flex items-center gap-2">
-        <img
+        <Image
           src={
             currencies.find(({ symbol }) => symbol === payInfo.input_currency)
               ?.image
           }
           alt="first-currency-image"
-          className={`w-6 group-hover:opacity-50 transition ${
+          width={25}
+          height={25}
+          className={`group-hover:opacity-50 transition ${
             payInfo.input_currency ? "flex" : "hidden"
           }`}
         />
