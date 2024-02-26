@@ -1,3 +1,5 @@
+"use client";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { Button, Tooltip } from "@nextui-org/react";
 import { formatTime } from "@/utils";

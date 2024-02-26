@@ -1,12 +1,8 @@
-import { toast } from "sonner";
-
 export function CopyIcon({ copyValue }) {
   const handleClick = () => {
     navigator.clipboard
       .writeText(copyValue)
-      .then(() => {
-        toast.success("Copiado al portapapeles.");
-      })
+
       .catch((e) => {
         console.log(e);
       });

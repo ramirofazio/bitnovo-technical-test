@@ -8,7 +8,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ["payments.pre-bnvo.com"],
+    remotePatterns: ["payments.pre-bnvo.com"],
   },
 };
 

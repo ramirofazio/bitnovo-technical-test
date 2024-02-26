@@ -9,7 +9,7 @@ export default function TimeoutOrSuccessSection({ isSuccess }) {
   const [loading, setLoading] = useState(false);
 
   return (
-    <AnimatedContainer className="shadow-center rounded-xl flex flex-col items-center justify-start p-6 gap-4 py-10 w-[30vw]">
+    <AnimatedContainer className="shadow-center rounded-xl flex text-center flex-col items-center justify-start p-6 gap-4 py-10 w-[70vw] xl:w-[30vw]">
       <div
         className={`grid place-content-center rounded-full p-4 ${
           isSuccess ? "bg-green-300" : "bg-red-300"

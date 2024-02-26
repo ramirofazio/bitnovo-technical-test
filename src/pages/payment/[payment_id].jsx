@@ -41,7 +41,8 @@ export default function Page({ orderInfo, currencies, payment_uri }) {
           toast.info(
             `Monto insuficiente, por favor completa el pago. Montos recibidos: ${
               data.confirmed_amount
-            } ${data.currency_id.split("_")[0]} `
+            } ${data.currency_id.split("_")[0]} `,
+            { duration: 5000 }
           );
         }
       };
