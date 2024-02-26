@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CreatePay } from "@/api";
-import SelectCurrenciesModal, {
-  checkValidCurrency,
-} from "./SelectCurrenciesModal";
+import SelectCurrenciesModal from "./SelectCurrenciesModal";
 import SelectCurrenciesButton from "./SelectCurrencyButton";
 import { useDisclosure, Button, Tooltip } from "@nextui-org/react";
 import { toast } from "sonner";
+import { checkValidCurrency } from "@/utils";
 
 export function CreatePayForm({ currencies }) {
   const router = useRouter();
